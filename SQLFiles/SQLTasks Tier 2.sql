@@ -151,18 +151,17 @@ QUESTIONS:
 The output of facility name and total revenue, sorted by revenue. Remember
 that there's a different cost for guests and members! */
 
-SELECT name, revenue
-FROM (SELECT facid, name, SUM(cost) AS revenue
- 	  FROM (SELECT f.name, m.firstname, m.surname, b.starttime, b.facid,
-		   (CASE WHEN b.memid = 0 AND (guestcost*slots) THEN (guestcost*slots)
-			ELSE (membercost*slots) END) AS cost
- 			FROM `Members` AS m
- 			LEFT JOIN `Bookings` AS b
- 			USING (memid)
- 			LEFT JOIN `Facilities` AS f
- 			USING (facid)) AS subq
-      GROUP BY facid) AS subq2
-WHERE revenue < 1000
+SELECT facid, name, revenue
+FROM (SELECT f.name, m.firstname, m.surname, b.starttime, b.facid,
+	  SUM(CASE WHEN b.memid = 0 AND (guestcost*slots) THEN (guestcost*slots) 
+          ELSE (membercost*slots) END) AS revenue
+      FROM `Members` AS m
+      LEFT JOIN `Bookings` AS b
+      USING (memid)
+      LEFT JOIN `Facilities` AS f
+      USING (facid)) AS subq
+GROUP BY facid
+HAVING revenue < 1000
 ORDER BY revenue DESC;
 
 
@@ -190,4 +189,4 @@ FROM `Bookings` AS b
 LEFT JOIN `Facilities` AS f
 USING (facid)
 WHERE memid > 0
-GROUP BY Month;
+GROUP BY month;
